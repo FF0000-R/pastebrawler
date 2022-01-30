@@ -1,5 +1,39 @@
 #include <stdio.h>
+#include <curl/curl.h>
 #include <string.h>
+#include <pthread.h>
+
+void *download( void *gen ) {
+	const char *filename = gen;
+	CURL *curl;
+	FILE *fp;
+	int result;
+	char url[] = {"https://pastebin.com/raw/"};
+	printf("filename: %s\n", filename);
+
+	fp = fopen(gen, "wb");
+	strcat(url, filename);
+
+	curl = curl_easy_init();
+	curl_easy_setopt(curl, CURLOPT_URL, url);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
+	curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
+
+	result = curl_easy_perform(curl);
+
+	fclose(fp);
+
+	if(result == CURLE_OK) {
+		printf("#############################\n");
+		printf("######    dl success    #####\n");
+		printf("#############################\n");
+	} else {
+		printf("dl error: %s\n", curl_easy_strerror(result));
+		remove(filename);
+	}
+
+	curl_easy_cleanup(curl);
+}
 
 
 int main(){
@@ -7,9 +41,8 @@ int main(){
 	int i, j, k, l, m, n, o, p;
 	char ref[] = {"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"};
 	char url[] = {"00000000"};
-	char pbURL[] = {"https://pastebin.com/raw/"};
-	char bufferURL[40];
 	int base = sizeof ref - 1;
+	pthread_t threadID;
 
 	for (i = 0 ; i < base ; i++){
 		for (j = 0 ; j < base ; j++){
@@ -21,11 +54,11 @@ int main(){
 								for (p = 0 ; p < base ; p++){
 								 
 									url[7] = ref[p];
-									strcpy(bufferURL, pbURL);
-									strcat(bufferURL, url);
-									printf("%s\n", bufferURL);
+									printf("%s\n", url);
+									pthread_create(&threadID, NULL, download, (void *)&url);
 									}
 								url[6] = ref[o];
+								pthread_join(threadID, NULL);
 								}
 							url[5] = ref[n];
 							}

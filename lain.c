@@ -18,14 +18,16 @@ int download( char *gen ) {
 
 	result = curl_easy_perform(curl);
 
-	if(result == CURLE_OK)
-		printf("dl success\n");
-	else {
-		printf("dl ERROR: %s\n", curl_easy_strerror(result));
+	fclose(fp);
+
+	if(result == CURLE_OK) {
+		printf("#############################\n");
+		printf("######    dl success    #####\n");
+		printf("#############################\n");
+	} else {
 		remove(gen);
 	}
 
-	fclose(fp);
 	curl_easy_cleanup(curl);
 }
 
